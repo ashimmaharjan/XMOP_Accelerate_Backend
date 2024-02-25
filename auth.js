@@ -2,6 +2,7 @@ const {
   AuthenticationDetails,
   CognitoUser,
   CognitoUserPool,
+  CognitoUserAttribute,
 } = require("amazon-cognito-identity-js");
 
 const userPool = new CognitoUserPool({
@@ -9,6 +10,7 @@ const userPool = new CognitoUserPool({
   ClientId: "6h05hlc92b3l4hbk2ud4d2df50",
 });
 
+// handle login functionality
 function loginUser(email, password, callback) {
   const authenticationDetails = new AuthenticationDetails({
     Username: email,
@@ -23,6 +25,7 @@ function loginUser(email, password, callback) {
   cognitoUser.authenticateUser(authenticationDetails, {
     onSuccess: (session) => {
       console.log("User authenticated successfully");
+      console.log(session);
       callback(null, {
         success: true,
         message: "User authenticated successfully",
@@ -45,4 +48,42 @@ function loginUser(email, password, callback) {
   });
 }
 
-module.exports = { loginUser };
+// handle signup functionality
+function signUpUser(email, password, fullName, callback) {
+  const attributeList = [
+    new CognitoUserAttribute({ Name: "email", Value: email }),
+    new CognitoUserAttribute({ Name: "name", Value: fullName }),
+  ];
+
+  userPool.signUp(email, password, attributeList, null, (err, result) => {
+    if (err) {
+      console.error("Error signing up user:", err);
+      callback(err);
+    } else {
+      console.log("User signed up successfully", result);
+      callback(null, result.user);
+    }
+  });
+}
+
+// handle signup confirmation
+function confirmSignUp(email, confirmationCode, callback) {
+  const userData = {
+    Username: email,
+    Pool: userPool,
+  };
+
+  const cognitoUser = new CognitoUser(userData);
+
+  cognitoUser.confirmRegistration(confirmationCode, true, (err, result) => {
+    if (err) {
+      console.error("Error confirming user registration:", err);
+      callback(err);
+    } else {
+      console.log("User registration confirmed successfully:", result);
+      callback(null, result);
+    }
+  });
+}
+
+module.exports = { loginUser, signUpUser, confirmSignUp };
