@@ -25,10 +25,13 @@ function loginUser(email, password, callback) {
   cognitoUser.authenticateUser(authenticationDetails, {
     onSuccess: (session) => {
       console.log("User authenticated successfully");
-      console.log(session);
+      const idToken = session.getIdToken().getJwtToken();
+      const fullName = session.getIdToken().payload.name;
+
       callback(null, {
         success: true,
         message: "User authenticated successfully",
+        data: { idToken, fullName },
       });
     },
     onFailure: (err) => {
@@ -45,9 +48,12 @@ function loginUser(email, password, callback) {
         message: "User authenticated successfully",
       });
     },
+    mfaRequired: (challengeName, challengeParameters) => {
+      console.log("MFA is required"); // Add a log statement for debugging
+      callback({ error: "MFA_REQUIRED" }, null);
+    },
   });
 }
-
 // handle signup functionality
 function signUpUser(email, password, fullName, callback) {
   const attributeList = [
