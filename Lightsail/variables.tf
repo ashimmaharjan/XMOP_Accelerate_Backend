@@ -1,6 +1,5 @@
 variable "region" {
-  type    = string
-  default = "ap-southeast-2"
+  type = string
 }
 
 variable "availability_zone" {
@@ -14,13 +13,11 @@ variable "instance" {
 }
 
 variable "instance_blueprintid" {
-  type    = string
-  default = "wordpress"
+  type = string
 }
 
 variable "instance_bundleid" {
-  type    = string
-  default = "small_3_2"
+  type = string
 }
 
 variable "intance_key_pair" {

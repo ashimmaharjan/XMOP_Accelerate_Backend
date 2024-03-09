@@ -1,0 +1,15 @@
+
+# dependencies
+/node_modules
+
+# Ignore all files in the .terraform directory
+**/.terraform/*
+
+# Ignore the terraform.tfstate file
+*/terraform.tfstate
+
+# Ignore the terraform.tfstate.backup file
+*/terraform.tfstate.backup
+
+**/.terraform.lock.hcl
+
