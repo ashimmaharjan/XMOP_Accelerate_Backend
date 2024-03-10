@@ -23,6 +23,7 @@ const deployLightsail = (region, blueprint, instancePlan) => {
         if (initError) {
           console.error(`Error initializing Terraform: ${initError.message}`);
           reject({ success: false, message: "Error initializing Terraform" });
+          return; // Stop execution here
         }
 
         console.log("Terraform initialized successfully.");
@@ -38,6 +39,7 @@ const deployLightsail = (region, blueprint, instancePlan) => {
                 message: "Error applying Terraform",
                 error: applyError.message,
               });
+              return; // Stop execution here
             }
 
             console.log("Terraform Apply Output:");
