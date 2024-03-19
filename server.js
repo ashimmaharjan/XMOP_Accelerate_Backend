@@ -3,6 +3,12 @@ const cors = require("cors");
 
 const { loginUser, signUpUser, confirmSignUp } = require("./auth");
 const { deployLightsail } = require("./deployment");
+const {
+  getRegions,
+  getAvailabilityZones,
+  getBlueprintIds,
+  getBundleIds,
+} = require("./awsData");
 
 const app = express();
 
@@ -86,6 +92,51 @@ app.post("/api/deploy-lightsail", async (req, res) => {
       message: "Error deploying Lightsail",
       error: error.message,
     });
+  }
+});
+
+// API endpoint to fetch AWS regions
+app.get("/api/regions", async (req, res) => {
+  try {
+    const regions = await getRegions();
+    res.json({ success: true, data: regions });
+  } catch (error) {
+    console.error("Error fetching regions:", error);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
+// API endpoint to fetch availability zones for a region
+app.get("/api/availability-zones/:region", async (req, res) => {
+  const region = req.params.region;
+  try {
+    const availabilityZones = await getAvailabilityZones(region);
+    res.json({ success: true, data: availabilityZones });
+  } catch (error) {
+    console.error("Error fetching availability zones:", error);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
+// API endpoint to fetch Lightsail blueprint IDs
+app.get("/api/blueprints", async (req, res) => {
+  try {
+    const blueprints = await getBlueprintIds();
+    res.json({ success: true, data: blueprints });
+  } catch (error) {
+    console.error("Error fetching blueprint IDs:", error);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
+// API endpoint to fetch Lightsail bundle IDs
+app.get("/api/bundles", async (req, res) => {
+  try {
+    const bundles = await getBundleIds();
+    res.json({ success: true, data: bundles });
+  } catch (error) {
+    console.error("Error fetching bundle IDs:", error);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
   }
 });
 

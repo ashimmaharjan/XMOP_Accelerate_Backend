@@ -54,6 +54,7 @@ function loginUser(email, password, callback) {
     },
   });
 }
+
 // handle signup functionality
 function signUpUser(email, password, fullName, callback) {
   const attributeList = [
