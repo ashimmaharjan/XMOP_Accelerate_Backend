@@ -1,8 +1,8 @@
 
 
 resource "aws_instance" "binod" {
-  ami           = "ami-09ccb67fcbf1d625c"
-  instance_type = "t2.micro"
+  ami           = var.ami
+  instance_type = var.instance
   key_name      = "binodkey"
 
  // user_data     = file("userdata/install_wordpress.sh")
