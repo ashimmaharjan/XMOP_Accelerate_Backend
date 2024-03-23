@@ -24,7 +24,6 @@ async function getAvailabilityZones(region) {
     const zoneNames = availabilityZones.AvailabilityZones.map(
       (zone) => zone.ZoneName
     );
-    console.log("Returned zones data array:", zoneNames);
     return zoneNames;
   } catch (error) {
     console.error("Error fetching availability zones:", error);
@@ -42,13 +41,13 @@ async function getBlueprintIds() {
   }
 }
 
-async function getBundleIds() {
+async function getBundlesForRegion(region) {
   try {
+    const lightsail = new AWS.Lightsail({ region });
     const bundles = await lightsail.getBundles().promise();
-
     return bundles;
   } catch (error) {
-    console.error("Error fetching bundle IDs:", error);
+    console.error("Error fetching bundles for region:", error);
     throw error;
   }
 }
@@ -57,5 +56,5 @@ module.exports = {
   getRegions,
   getAvailabilityZones,
   getBlueprintIds,
-  getBundleIds,
+  getBundlesForRegion,
 };

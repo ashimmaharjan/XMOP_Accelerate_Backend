@@ -27,11 +27,11 @@ function loginUser(email, password, callback) {
       console.log("User authenticated successfully");
       const idToken = session.getIdToken().getJwtToken();
       const fullName = session.getIdToken().payload.name;
-
+      const email = session.getIdToken().payload.email;
       callback(null, {
         success: true,
         message: "User authenticated successfully",
-        data: { idToken, fullName },
+        data: { idToken, fullName, email },
       });
     },
     onFailure: (err) => {

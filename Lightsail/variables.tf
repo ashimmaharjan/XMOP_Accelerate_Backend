@@ -3,13 +3,11 @@ variable "region" {
 }
 
 variable "availability_zone" {
-  type    = list(string)
-  default = ["ap-southeast-2a", "ap-southeast-2b", "ap-southeast-2d"]
+  type = string
 }
 
 variable "instance" {
-  type    = string
-  default = "Wordpress-Instance"
+  type = string
 }
 
 variable "instance_blueprintid" {
@@ -23,14 +21,4 @@ variable "instance_bundleid" {
 variable "intance_key_pair" {
   type    = string
   default = "Wordpress-KP"
-}
-
-variable "static_ip" {
-  type    = string
-  default = "Wordpress-IP"
-}
-
-variable "static_ip_attachment" {
-  type    = string
-  default = "Wordpress-IP"
 }

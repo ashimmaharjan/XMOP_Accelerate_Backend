@@ -7,8 +7,10 @@ const {
   getRegions,
   getAvailabilityZones,
   getBlueprintIds,
-  getBundleIds,
+  getBundlesForRegion,
 } = require("./awsData");
+
+const { getDeploymentsData } = require("./fetchDeployments");
 
 const app = express();
 
@@ -62,39 +64,6 @@ app.post("/api/verifyAccount", (req, res) => {
   });
 });
 
-// API endpoint for deploying Lightsail
-app.post("/api/deploy-lightsail", async (req, res) => {
-  const { region, blueprint, instancePlan } = req.body;
-  console.log("Data received:", req.body);
-
-  try {
-    const deploymentResult = await deployLightsail(
-      region,
-      blueprint,
-      instancePlan
-    );
-    if (deploymentResult.success) {
-      res.status(200).json({
-        success: true,
-        message: "Terraform execution completed",
-        ip: deploymentResult.ip,
-      });
-    } else {
-      res.status(500).json({
-        success: false,
-        message: "Error applying Terraform",
-        error: deploymentResult.error,
-      });
-    }
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Error deploying Lightsail",
-      error: error.message,
-    });
-  }
-});
-
 // API endpoint to fetch AWS regions
 app.get("/api/regions", async (req, res) => {
   try {
@@ -129,13 +98,74 @@ app.get("/api/blueprints", async (req, res) => {
   }
 });
 
-// API endpoint to fetch Lightsail bundle IDs
-app.get("/api/bundles", async (req, res) => {
+// API endpoint to fetch Lightsail bundle IDs for a region
+app.get("/api/available-bundles/:region", async (req, res) => {
+  const region = req.params.region;
   try {
-    const bundles = await getBundleIds();
-    res.json({ success: true, data: bundles });
+    const availableBundles = await getBundlesForRegion(region);
+    res.json({ success: true, data: availableBundles });
   } catch (error) {
-    console.error("Error fetching bundle IDs:", error);
+    console.error("Error fetching available bundles:", error);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
+// API endpoint for deploying Lightsail
+app.post("/api/deploy-lightsail", async (req, res) => {
+  const {
+    instanceName,
+    region,
+    availabilityZone,
+    blueprint,
+    publicSSH,
+    instancePlan,
+    userEmail,
+  } = req.body;
+  console.log("Data received:", req.body);
+
+  try {
+    const deploymentResult = await deployLightsail(
+      instanceName,
+      region,
+      availabilityZone,
+      blueprint,
+      publicSSH,
+      instancePlan,
+      userEmail
+    );
+    if (deploymentResult.success) {
+      res.status(200).json({
+        success: true,
+        message: "Terraform execution completed",
+        ip: deploymentResult.ip,
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        message: "Error applying Terraform",
+        error: deploymentResult.error,
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error deploying Lightsail",
+      error: error.message,
+    });
+  }
+});
+
+// API endpoint to fetch deployment data filtered by user email
+app.get("/api/deployments", async (req, res) => {
+  try {
+    const userEmail = req.query.userEmail;
+    if (!userEmail) {
+      return res.status(400).json({ error: "User email is required" });
+    }
+    const deploymentData = await getDeploymentsData(userEmail);
+    res.json({ success: true, data: deploymentData });
+  } catch (error) {
+    console.error("Error fetching deployment data:", error);
     res.status(500).json({ success: false, error: "Internal Server Error" });
   }
 });
