@@ -6,7 +6,6 @@ AWS.config.update({ region: "ap-southeast-2" });
 // Initialize Lightsail instance
 const lightsail = new AWS.Lightsail();
 
-// Define route handlers
 async function getRegions() {
   try {
     const regions = await lightsail.getRegions().promise();
