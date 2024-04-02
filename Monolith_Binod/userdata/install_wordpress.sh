@@ -14,6 +14,7 @@ sudo yum install -y php
 
 # Install and enable PHP MySQLi extension
 sudo yum install -y php-mysqli
+sudo yum install -y python3
 
 # Start and enable Apache
 sudo systemctl start httpd
@@ -23,17 +24,18 @@ sudo systemctl enable httpd
 sudo systemctl start mariadb
 sudo systemctl enable mariadb
 
+
 # Secure MariaDB Installation (automated)
-sudo mysql -e "UPDATE mysql.user SET Password = PASSWORD('your_password') WHERE User = 'wordpress_user';"
+sudo mysql -e "UPDATE mysql.user SET Password = PASSWORD('${db_password}') WHERE User = '${db_username}';"
 sudo mysql -e "DELETE FROM mysql.user WHERE User='';"
-sudo mysql -e "DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');"
+sudo mysql -e "DELETE FROM mysql.user WHERE User='${db_username}' AND Host NOT IN ('localhost', '127.0.0.1', '::1');"
 sudo mysql -e "DROP DATABASE IF EXISTS test;"
 sudo mysql -e "FLUSH PRIVILEGES;"
 
 # Create WordPress database and user
-sudo mysql -e "CREATE DATABASE wordpress_db;"
-sudo mysql -e "CREATE USER 'wordpress_user'@'%' IDENTIFIED BY 'your_password';"
-sudo mysql -e "GRANT ALL PRIVILEGES ON wordpress_db.* TO 'wordpress_user'@'%';"
+sudo mysql -e "CREATE DATABASE ${db_name};"
+sudo mysql -e "CREATE USER '${db_username}'@'%' IDENTIFIED BY '${db_password}';"
+sudo mysql -e "GRANT ALL PRIVILEGES ON ${db_name}.* TO ${db_username}@'%';"
 sudo mysql -e "FLUSH PRIVILEGES;"
 
 # Install WordPress Dependencies
@@ -45,12 +47,14 @@ sudo wget https://wordpress.org/latest.tar.gz
 sudo tar -xzf latest.tar.gz
 sudo chown -R apache:apache wordpress
 
+
 # Configure WordPress
 cd wordpress
 sudo cp wp-config-sample.php wp-config.php
-sudo sed -i 's/database_name_here/wordpress_db/' wp-config.php
-sudo sed -i 's/username_here/wordpress_user/' wp-config.php
-sudo sed -i 's/password_here/your_password/' wp-config.php
+sudo sed -i "s/database_name_here/${db_name}/" wp-config.php
+sudo sed -i "s/username_here/${db_username}/" wp-config.php
+sudo sed -i "s/password_here/${db_password}/" wp-config.php
+sudo sed -i 's/localhost/localhost/' wp-config.php
 
 # Configure Apache VirtualHost
 sudo tee /etc/httpd/conf.d/wordpress.conf <<EOF
