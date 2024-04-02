@@ -1,5 +1,6 @@
-resource "aws_security_group" "db" {
+resource "aws_security_group" "wordress-sg" {
   name_prefix = "wordpress-db-"
+  vpc_id = aws_vpc.my_vpc.id
 
   ingress {
     description = "HTTPS"
