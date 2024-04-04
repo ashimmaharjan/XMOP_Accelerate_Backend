@@ -5,11 +5,11 @@ set -x
 # Update the system and install necessary packages
 sudo yum update -y
 sudo amazon-linux-extras install epel -y
-sudo yum install -y httpd php mariadb-server
+sudo yum install -y ${apache_version} php ${db_type}
 
 # Install Latest PHP
 sudo yum install -y https://amazonlinux.extras.amazonaws.com/epel/7/x86_64/Packages/o/oniguruma-6.8.2-1.amzn2.0.2.x86_64.rpm
-sudo amazon-linux-extras enable php8.0
+sudo amazon-linux-extras enable ${php_version}
 sudo yum install -y php
 
 # Install and enable PHP MySQLi extension
@@ -17,8 +17,8 @@ sudo yum install -y php-mysqli
 sudo yum install -y python3
 
 # Start and enable Apache
-sudo systemctl start httpd
-sudo systemctl enable httpd
+sudo systemctl start ${apache_version}
+sudo systemctl enable ${apache_version}
 
 # Start and enable MariaDB
 sudo systemctl start mariadb

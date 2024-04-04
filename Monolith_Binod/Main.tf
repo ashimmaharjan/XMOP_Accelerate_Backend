@@ -49,6 +49,13 @@ resource "aws_instance" "wordpress_instance" {
   subnet_id = aws_subnet.public-subnet-1.id
   vpc_security_group_ids = [aws_security_group.wordress-sg.id]
   user_data = data.template_file.userdata_script.rendered
+
+  root_block_device {
+    volume_size           = var.storage_size  # Specify the volume size in GB
+    volume_type           = "gp2"
+    delete_on_termination = true
+  }
+
   tags = {
     Name = "WordPressInstance"
   }
@@ -66,6 +73,9 @@ data "template_file" "userdata_script" {
     db_name          = var.database_name
     db_username      = var.database_username
     db_password      = var.database_password
+    php_version      = var.php_version
+    apache_version   = var.apache_version
+    db_type          = var.db_type
   }
 }
 

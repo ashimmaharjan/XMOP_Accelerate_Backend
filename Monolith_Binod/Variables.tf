@@ -25,14 +25,30 @@ variable "instance" {
   default = "t2.micro"
 }
 
-variable "dbtype" {
-  default = "mysql"
+variable "db_type" {
+  default = "mariadb-server"
 }
 
 variable "allow_ssh"{
   default = "false"
 }
 
+variable "allow_http"{
+  default = "true"
+}
+
 variable "key_name"{
   default = "mykey"
+}
+
+variable "storage_size" {
+  default = "30"
+}
+
+variable "apache_version"{
+  default = "httpd"
+}
+
+variable "php_version"{
+  default = "php8.0"
 }
