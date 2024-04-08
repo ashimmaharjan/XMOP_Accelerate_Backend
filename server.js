@@ -8,6 +8,10 @@ const {
   getAvailabilityZones,
   getBlueprintIds,
   getBundlesForRegion,
+  getAMIs,
+  getInstanceTypes,
+  getKeyPairs,
+  createKeyPair,
 } = require("./awsData");
 
 const { getDeploymentsData } = require("./fetchDeployments");
@@ -107,6 +111,56 @@ app.get("/api/available-bundles/:region", async (req, res) => {
   } catch (error) {
     console.error("Error fetching available bundles:", error);
     res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
+// API endpoint to fetch AMIs for a region
+app.get("/api/AMIs/:region", async (req, res) => {
+  const region = req.params.region;
+  try {
+    const availableAMIs = await getAMIs(region);
+    console.log("Fetched AMIs", availableAMIs);
+    res.json({ success: true, data: availableAMIs });
+  } catch (error) {
+    console.error("Error fetching available AMIs:", error);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
+// Endpoint to fetch instance types
+app.get("/api/instance-types", async (req, res) => {
+  try {
+    const instanceTypes = await getInstanceTypes();
+    console.log("Fetched instance types", instanceTypes);
+    res.json({ success: true, data: instanceTypes });
+  } catch (error) {
+    console.error("Error fetching instance types:", error);
+    res.status(500).json({ error: "Failed to fetch instance types" });
+  }
+});
+
+// API endpoint to fetch keypairs for a region
+app.get("/api/keypairs/:region", async (req, res) => {
+  const region = req.params.region;
+  try {
+    const availableKeyPairs = await getKeyPairs(region);
+    res.json({ success: true, data: availableKeyPairs });
+  } catch (error) {
+    console.error("Error fetching available key-pairs:", error);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
+// API endpoint to create new key pair in selected region
+app.post("/api/create-key-pair", async (req, res) => {
+  const region = req.body.region;
+  const keyPairName = req.body.keyPairName;
+  try {
+    const newKeyPairData = await createKeyPair(region, keyPairName);
+    res.json({ success: true, data: newKeyPairData });
+  } catch (error) {
+    console.error("Error creating key pair:", error);
+    res.status(500).json({ success: false, error: "Error creating key pair" });
   }
 });
 
