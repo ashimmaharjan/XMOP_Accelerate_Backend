@@ -2,13 +2,12 @@ const express = require("express");
 const cors = require("cors");
 
 const { loginUser, signUpUser, confirmSignUp } = require("./auth");
-const { deployLightsail } = require("./deployment");
+const { deployLightsail, deployMonolith } = require("./deployment");
 const {
   getRegions,
   getAvailabilityZones,
   getBlueprintIds,
   getBundlesForRegion,
-  getAMIs,
   getInstanceTypes,
   getKeyPairs,
   createKeyPair,
@@ -114,24 +113,12 @@ app.get("/api/available-bundles/:region", async (req, res) => {
   }
 });
 
-// API endpoint to fetch AMIs for a region
-app.get("/api/AMIs/:region", async (req, res) => {
+// Endpoint to fetch instance types
+app.get("/api/instance-types/:region", async (req, res) => {
   const region = req.params.region;
   try {
-    const availableAMIs = await getAMIs(region);
-    console.log("Fetched AMIs", availableAMIs);
-    res.json({ success: true, data: availableAMIs });
-  } catch (error) {
-    console.error("Error fetching available AMIs:", error);
-    res.status(500).json({ success: false, error: "Internal Server Error" });
-  }
-});
-
-// Endpoint to fetch instance types
-app.get("/api/instance-types", async (req, res) => {
-  try {
-    const instanceTypes = await getInstanceTypes();
-    console.log("Fetched instance types", instanceTypes);
+    const instanceTypes = await getInstanceTypes(region);
+    console.log("Fetched instance types", instanceTypes.length);
     res.json({ success: true, data: instanceTypes });
   } catch (error) {
     console.error("Error fetching instance types:", error);
@@ -204,6 +191,63 @@ app.post("/api/deploy-lightsail", async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error deploying Lightsail",
+      error: error.message,
+    });
+  }
+});
+
+// API endpoint for deploying Lightsail
+app.post("/api/deploy-monolith", async (req, res) => {
+  const {
+    instanceName,
+    region,
+    availabilityZone,
+    image,
+    instanceType,
+    keyPair,
+    sshAllowed,
+    httpAllowed,
+    storage,
+    dbType,
+    phpVersion,
+    webServer,
+    userEmail,
+  } = req.body;
+  console.log("Data received for monolith deployment:", req.body);
+
+  try {
+    const deploymentResult = await deployMonolith(
+      instanceName,
+      region,
+      availabilityZone,
+      image,
+      instanceType,
+      keyPair,
+      sshAllowed,
+      httpAllowed,
+      storage,
+      dbType,
+      phpVersion,
+      webServer,
+      userEmail
+    );
+    if (deploymentResult.success) {
+      res.status(200).json({
+        success: true,
+        message: "Terraform execution completed",
+        ip: deploymentResult.ip,
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        message: "Error applying Terraform",
+        error: deploymentResult.error,
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error deploying Monolith",
       error: error.message,
     });
   }

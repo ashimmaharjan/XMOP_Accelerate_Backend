@@ -51,44 +51,26 @@ async function getBundlesForRegion(region) {
   }
 }
 
-async function getAMIs(region) {
+async function getInstanceTypes(region) {
   try {
     const ec2 = new AWS.EC2({ region });
-    const params = {
-      Owners: ["amazon"],
-      Filters: [
-        {
-          Name: "state",
-          Values: ["available"],
-        },
-      ],
-    };
-    const amis = await ec2.describeImages(params).promise();
-    return amis.Images;
-  } catch (error) {
-    console.error("Error fetching AMIs:", error);
-    throw error;
-  }
-}
-
-async function getInstanceTypes() {
-  try {
-    const ec2 = new AWS.EC2();
     const instanceTypes = await ec2.describeInstanceTypes().promise();
 
-    // Filter instance types where CurrentGeneration is true
-    const currentGenerationInstanceTypes = instanceTypes.InstanceTypes.filter(
-      (instance) => instance.CurrentGeneration === true
+    // Filter instance types where VirtualizationTypes include "hvm" or "pv"
+    const virtualServerTypes = instanceTypes.InstanceTypes.filter(
+      (instance) =>
+        instance.SupportedVirtualizationTypes.includes("hvm") ||
+        instance.SupportedVirtualizationTypes.includes("pv")
     );
 
     // Sort the filtered instance types alphabetically based on their InstanceType property
-    const sortedInstanceTypes = currentGenerationInstanceTypes.sort((a, b) => {
+    const sortedVirtualServerTypes = virtualServerTypes.sort((a, b) => {
       return a.InstanceType.localeCompare(b.InstanceType);
     });
 
-    return sortedInstanceTypes;
+    return sortedVirtualServerTypes;
   } catch (error) {
-    console.error("Error fetching instance types:", error);
+    console.error("Error fetching virtual server types:", error);
     throw error;
   }
 }
@@ -122,7 +104,6 @@ module.exports = {
   getAvailabilityZones,
   getBlueprintIds,
   getBundlesForRegion,
-  getAMIs,
   getInstanceTypes,
   getKeyPairs,
   createKeyPair,
