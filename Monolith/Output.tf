@@ -1,7 +1,3 @@
-output "public_ip" {
-  value = aws_instance.wordpress_instance.public_ip
-}
-
-output "instance_arn" {
-  value = aws_instance.wordpress_instance.arn
+output "public_ips" {
+  value = [for instance in aws_instance.wordpress_instance : instance.public_ip]
 }
