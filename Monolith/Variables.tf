@@ -1,59 +1,68 @@
-variable "instance_name" {
-  type = string
-}
-
 variable "aws_region" {
-  type = string
-}
-
-variable "subnet_availability_zone" {
-  type = string
+  default = "ap-southeast-2"
 }
 
 variable "database_name" {
   default = "wordpress_db"
+
 }
 
 variable "database_username" {
   default = "wordpress_user"
+
 }
 
 variable "database_password" {
   default = "your_password"
+ 
 }
 
 variable "ami" {
-  type = string
+  default = "ami-09ccb67fcbf1d625c"
 }
 
-variable "instance_type" {
-  type = string
+variable "instance" {
+  default = "t1.micro"
 }
 
 variable "db_type" {
-  type = string
+  default = "mariadb-server"
 }
 
-variable "allow_ssh" {
-  type = bool
+variable "allow_ssh"{
+  default = "false"
 }
 
-variable "allow_http" {
-  type = bool
+variable "allow_http"{
+  default = "true"
 }
 
-variable "key_name" {
-  type = string
+variable "key_name"{
+  default = "binodkey"
 }
 
 variable "storage_size" {
-  type = string
+  default = "20"
 }
 
-variable "apache_version" {
-  type = string
+variable "apache_version"{
+  default = "httpd"
 }
 
-variable "php_version" {
+variable "php_version"{
+  default = "php8.0"
+}
+
+variable "instance_name" {
   type = string
+  default = "binod2"
+}
+
+variable "instance_count" {
+  type = number
+  default = 1
+}
+
+variable "workspace_name" {
+  default = "binod2"
 }
