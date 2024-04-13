@@ -1,71 +1,35 @@
-resource "aws_instance" "production_1_instance" {
-  ami                    = var.ami
-  instance_type          = var.instance_type
-  subnet_id              = aws_subnet.ec2_1_public_subnet.id
-  vpc_security_group_ids = [aws_security_group.production-instance-sg.id]
-  key_name               = var.key_name
-  user_data              = file("install_script.sh")
-  tags = {
-    Name = "Production instance 1"
+resource "aws_instance" "highlyavailable_instance" {
+  count           = var.max_instances
+  ami             = var.ami
+  instance_type   = var.instance_type
+  subnet_id       = count.index % 2 == 0 ? aws_subnet.ec2_1_public_subnet.id : aws_subnet.ec2_2_public_subnet.id
+  key_name        = var.key_name
+  user_data       = file("install_script.sh")
+  security_groups = [aws_security_group.highlyavailable_instance_sg.id]
+  root_block_device {
+    volume_size = var.storage_size
+    volume_type = "gp2"
   }
-  depends_on = [
-    aws_db_instance.rds_master,
-  ]
-}
-
-resource "aws_instance" "production_2_instance" {
-  ami                    = var.ami
-  instance_type          = var.instance_type
-  subnet_id              = aws_subnet.ec2_2_public_subnet.id
-  vpc_security_group_ids = [aws_security_group.production-instance-sg.id]
-  key_name               = var.key_name
-  user_data              = file("install_script.sh")
   tags = {
-    Name = "Production instance 2"
+    Name = "Highly available instance ${count.index}"
   }
-  depends_on = [
-    aws_db_instance.rds_master,
-  ]
 }
-resource "aws_db_subnet_group" "database_subnet" {
-  name = "rdsdbsubnet"
-  # subnet_ids = [aws_subnet.database_private_subnet.id]
-  subnet_ids = [aws_subnet.database_private_subnet.id, aws_subnet.database_read_replica_private_subnet.id]
-}
-
 
 resource "aws_db_instance" "rds_master" {
-  identifier              = "master-rds-instance"
-  allocated_storage       = 10
-  engine                  = "mysql"
-  engine_version          = "5.7"
-  instance_class          = "db.t3.micro"
-  db_name                 = var.db_name
-  username                = var.db_user
-  password                = var.db_password
-  backup_retention_period = 7
-  multi_az                = false
-  availability_zone       = var.availability_zone[1]
-  db_subnet_group_name    = aws_db_subnet_group.database_subnet.id
-  skip_final_snapshot     = true
-  vpc_security_group_ids  = [aws_security_group.database-sg.id]
-  storage_encrypted       = true
+  allocated_storage    = var.storage_capacity
+  engine               = var.db_engine
+  engine_version       = var.engine_version
+  instance_class       = var.db_instance_type
+  identifier           = "my-rds-master"
+  db_name              = var.db_name
+  username             = var.db_user
+  password             = var.db_password
+  multi_az             = false
+  db_subnet_group_name = aws_db_subnet_group.database_subnet.id
+  availability_zone    = var.availability_zones[0]
+  skip_final_snapshot  = true
   tags = {
     Name = "my-rds-master"
   }
 }
-# resource "aws_db_instance" "rds_replica" {
-#   replicate_source_db    = aws_db_instance.rds_master.identifier
-#   instance_class         = "db.t3.micro"
-#   identifier             = "replica-rds-instance"
-#   allocated_storage      = 10
-#   skip_final_snapshot    = true
-#   multi_az               = false
-#   availability_zone      = var.availability_zone[0]
-#   vpc_security_group_ids = [aws_security_group.database-sg.id]
-#   storage_encrypted      = true
-#   tags = {
-#     Name = "my-rds-replica"
-#   }
-# }
 

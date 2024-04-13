@@ -1,8 +1,7 @@
-# Create a security  group for production node to allow traffic 
-resource "aws_security_group" "production-instance-sg" {
-  name        = "production-instance-sg"
-  description = "Security from who allow inbound traffic on port 22 and 9090"
-  vpc_id      = aws_vpc.infrastructure_vpc.id
+resource "aws_security_group" "highlyavailable_instance_sg" {
+  name        = "highlyavailable_instance_sg"
+  description = "Security group for EC2 instances"
+  vpc_id      = aws_vpc.highlyavailable_vpc.id
 
   # dynamic block who create two rules to allow inbound traffic 
   dynamic "ingress" {
@@ -23,18 +22,16 @@ resource "aws_security_group" "production-instance-sg" {
   }
 }
 
-# Create a security  group for database to allow traffic on port 3306 and from ec2 production security group
 resource "aws_security_group" "database-sg" {
   name        = "database-sg"
-  description = "security  group for database to allow traffic on port 3306 and from ec2 production security group"
-  vpc_id      = aws_vpc.infrastructure_vpc.id
+  description = "Security group for RDS"
+  vpc_id      = aws_vpc.highlyavailable_vpc.id
 
   ingress {
-    description     = "Allow traffic from port 3306 and from ec2 production security group"
     from_port       = 3306
     to_port         = 3306
     protocol        = "tcp"
-    security_groups = [aws_security_group.production-instance-sg.id]
+    security_groups = [aws_security_group.highlyavailable_instance_sg.id]
   }
 
   egress {
