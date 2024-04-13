@@ -1,25 +1,3 @@
-# Initialize or select workspace
-locals {
-  workspace_exists = var.workspace_name == terraform.workspace
-}
-
-
-resource "null_resource" "initialize_workspace" {
-  count = local.workspace_exists ? 0 : 1
-
-  provisioner "local-exec" {
-    command = "terraform workspace new ${var.workspace_name}"
-  }
-}
-
-resource "null_resource" "select_workspace" {
-  count = local.workspace_exists ? 1 : 0
-
-  provisioner "local-exec" {
-    command = "terraform workspace select ${var.workspace_name}"
-  }
-}
-
 
 //create VPC 
 resource "aws_vpc" "my_vpc" {
