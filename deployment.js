@@ -323,4 +323,151 @@ const deployMonolith = (
   });
 };
 
-module.exports = { deployLightsail, deployMonolith };
+const deployHighlyAvailable = (
+  instanceName,
+  region,
+  availabilityZone,
+  minInstances,
+  maxInstances,
+  ami,
+  instanceType,
+  keyPair,
+  storage,
+  dbEngine,
+  engineVersion,
+  environment,
+  rdsMultiAZ,
+  userEmail
+) => {
+  return new Promise((resolve, reject) => {
+    const receivedInstanceName = instanceName;
+    const receivedRegion = region;
+    const receivedAvailabilityZone = availabilityZone;
+    const receivedMinInstances = minInstances;
+    const receivedMaxInstances = maxInstances;
+    const receivedAMI = ami;
+    const receivedInstanceType = instanceType;
+    const receivedKeyPair = keyPair;
+    const receivedStorage = storage;
+    const receivedDBEngine = dbEngine;
+    const receivedEngineVersion = engineVersion;
+    const receivedEnvironment = environment;
+    const receivedRDSMultiAZ = rdsMultiAZ;
+
+    if (
+      !receivedInstanceName ||
+      !receivedRegion ||
+      !receivedAvailabilityZone ||
+      !receivedMinInstances ||
+      !receivedMaxInstances ||
+      !receivedAMI ||
+      !receivedInstanceType ||
+      !receivedKeyPair ||
+      !receivedStorage ||
+      !receivedDBEngine ||
+      !receivedEngineVersion ||
+      !receivedEnvironment ||
+      !receivedRDSMultiAZ
+    ) {
+      console.error("Missing required inputs");
+      reject({ success: false, message: "Missing required inputs" });
+      return;
+    }
+
+    const multi_az = receivedRDSMultiAZ === "true" ? true : false;
+
+    const terraformPath = path.join(__dirname, "HighlyAvailable");
+
+    console.log("Initializing Terraform...");
+    exec(
+      "terraform init",
+      { cwd: terraformPath },
+      (initError, initStdout, initStderr) => {
+        if (initError) {
+          console.error(`Error initializing Terraform: ${initError.message}`);
+          reject({ success: false, message: "Error initializing Terraform" });
+          return;
+        }
+
+        console.log("Terraform initialized successfully.");
+        console.log("Planning and applying Terraform changes...");
+        exec(
+          `terraform apply -auto-approve -var="instance_name=${receivedInstanceName}" -var="aws_region=${receivedRegion}" -var="availability_zone=${receivedAvailabilityZone}" -var="min_instances=${receivedMinInstances}" -var="max_instances=${receivedMaxInstances}" -var="ami=${receivedAMI}" -var="instance_type=${receivedInstanceType}" -var="key_name=${receivedKeyPair}" -var="storage_size=${receivedStorage}" -var="db_engine=${receivedDBEngine}" -var="engine_version=${receivedEngineVersion}" -var="multi_az=${multi_az}" -json`, // Add -json to output Terraform state as JSON
+          { cwd: terraformPath },
+          (applyError, applyStdout, applyStderr) => {
+            if (applyError) {
+              console.error(`Error applying Terraform: ${applyError.message}`);
+              reject({
+                success: false,
+                message: "Error applying Terraform",
+                error: applyError.message,
+              });
+              return;
+            }
+
+            console.log("Terraform Apply Output:");
+            console.log(applyStdout);
+
+            exec(
+              `terraform show -json`,
+              { cwd: terraformPath },
+              (showError, showStdout, showStderr) => {
+                if (showError) {
+                  console.error(
+                    `Error querying Terraform state: ${showError.message}`
+                  );
+                  reject({
+                    success: false,
+                    message: "Error querying Terraform state",
+                    error: showError.message,
+                  });
+                  return;
+                }
+
+                const state = JSON.parse(showStdout);
+                // Extract public IP address
+                const ip = state.values.root_module.resources.find(
+                  (resource) =>
+                    resource.type === "aws_lb" &&
+                    resource.name === "application_loadbalancer"
+                ).values.dns_name;
+
+                // Extract instance ARN
+                const instanceARN = state.values.root_module.resources.find(
+                  (resource) =>
+                    resource.type === "aws_lb" &&
+                    resource.name === "application_loadbalancer"
+                ).values.arn;
+
+                resolve({
+                  success: true,
+                  message: "Terraform execution completed",
+                  ip: ip,
+                });
+
+                uploadDeploymentData(
+                  receivedInstanceName,
+                  "Highly Available",
+                  new Date().toISOString(),
+                  instanceARN,
+                  ip,
+                  userEmail
+                )
+                  .then(() =>
+                    console.log(
+                      "Highly Available Deployment data uploaded successfully"
+                    )
+                  )
+                  .catch((err) =>
+                    console.error("Error uploading deployment data:", err)
+                  );
+              }
+            );
+          }
+        );
+      }
+    );
+  });
+};
+
+module.exports = { deployLightsail, deployMonolith, deployHighlyAvailable };

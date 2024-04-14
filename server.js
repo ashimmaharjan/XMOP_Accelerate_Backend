@@ -2,7 +2,11 @@ const express = require("express");
 const cors = require("cors");
 
 const { loginUser, signUpUser, confirmSignUp } = require("./auth");
-const { deployLightsail, deployMonolith } = require("./deployment");
+const {
+  deployLightsail,
+  deployMonolith,
+  deployHighlyAvailable,
+} = require("./deployment");
 const {
   getRegions,
   getAvailabilityZones,
@@ -196,7 +200,7 @@ app.post("/api/deploy-lightsail", async (req, res) => {
   }
 });
 
-// API endpoint for deploying Lightsail
+// API endpoint for deploying Monolith
 app.post("/api/deploy-monolith", async (req, res) => {
   const {
     instanceName,
@@ -248,6 +252,65 @@ app.post("/api/deploy-monolith", async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error deploying Monolith",
+      error: error.message,
+    });
+  }
+});
+
+// API endpoint for deploying Highly Available
+app.post("/api/deploy-highlyAvailable", async (req, res) => {
+  const {
+    instanceName,
+    region,
+    availabilityZone,
+    minInstances,
+    maxInstances,
+    ami,
+    instanceType,
+    keyPair,
+    storage,
+    dbEngine,
+    engineVersion,
+    environment,
+    rdsMultiAZ,
+    userEmail,
+  } = req.body;
+  console.log("Data received for highly available deployment:", req.body);
+
+  try {
+    const deploymentResult = await deployHighlyAvailable(
+      instanceName,
+      region,
+      availabilityZone,
+      minInstances,
+      maxInstances,
+      ami,
+      instanceType,
+      keyPair,
+      storage,
+      dbEngine,
+      engineVersion,
+      environment,
+      rdsMultiAZ,
+      userEmail
+    );
+    if (deploymentResult.success) {
+      res.status(200).json({
+        success: true,
+        message: "Terraform execution completed",
+        ip: deploymentResult.ip,
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        message: "Error applying Terraform",
+        error: deploymentResult.error,
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error deploying Highly Available",
       error: error.message,
     });
   }
