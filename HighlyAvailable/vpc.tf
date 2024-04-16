@@ -39,7 +39,7 @@ resource "aws_subnet" "database_private_subnet" {
   vpc_id                  = aws_vpc.highlyavailable_vpc.id
   cidr_block              = var.subnet_cidrs[2]
   map_public_ip_on_launch = false
-  availability_zone       = var.availability_zone
+  availability_zone       = data.aws_availability_zones.available.names[1]
   tags = {
     Name = "database private subnet"
   }

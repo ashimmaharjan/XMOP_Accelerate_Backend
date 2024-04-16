@@ -262,7 +262,6 @@ app.post("/api/deploy-highlyAvailable", async (req, res) => {
   const {
     instanceName,
     region,
-    availabilityZone,
     minInstances,
     maxInstances,
     ami,
@@ -281,7 +280,6 @@ app.post("/api/deploy-highlyAvailable", async (req, res) => {
     const deploymentResult = await deployHighlyAvailable(
       instanceName,
       region,
-      availabilityZone,
       minInstances,
       maxInstances,
       ami,

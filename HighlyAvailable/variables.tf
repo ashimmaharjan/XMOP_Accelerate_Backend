@@ -12,8 +12,8 @@ variable "aws_region" {
   type = string
 }
 
-variable "availability_zone" {
-  type = string
+data "aws_availability_zones" "available" {
+  state = "available"
 }
 
 variable "target_application_port" {

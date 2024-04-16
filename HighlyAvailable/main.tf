@@ -26,7 +26,7 @@ resource "aws_db_instance" "rds_master" {
   password             = var.db_password
   multi_az             = var.multi_az
   db_subnet_group_name = aws_db_subnet_group.database_subnet.id
-  availability_zone    = var.availability_zone
+  availability_zone    = data.aws_availability_zones.available.names[0]
   skip_final_snapshot  = true
   tags = {
     Name = "my-rds-master"

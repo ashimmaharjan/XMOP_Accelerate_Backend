@@ -326,7 +326,6 @@ const deployMonolith = (
 const deployHighlyAvailable = (
   instanceName,
   region,
-  availabilityZone,
   minInstances,
   maxInstances,
   ami,
@@ -342,7 +341,6 @@ const deployHighlyAvailable = (
   return new Promise((resolve, reject) => {
     const receivedInstanceName = instanceName;
     const receivedRegion = region;
-    const receivedAvailabilityZone = availabilityZone;
     const receivedMinInstances = minInstances;
     const receivedMaxInstances = maxInstances;
     const receivedAMI = ami;
@@ -357,7 +355,6 @@ const deployHighlyAvailable = (
     if (
       !receivedInstanceName ||
       !receivedRegion ||
-      !receivedAvailabilityZone ||
       !receivedMinInstances ||
       !receivedMaxInstances ||
       !receivedAMI ||
@@ -391,8 +388,20 @@ const deployHighlyAvailable = (
 
         console.log("Terraform initialized successfully.");
         console.log("Planning and applying Terraform changes...");
+
         exec(
-          `terraform apply -auto-approve -var="instance_name=${receivedInstanceName}" -var="aws_region=${receivedRegion}" -var="availability_zone=${receivedAvailabilityZone}" -var="min_instances=${receivedMinInstances}" -var="max_instances=${receivedMaxInstances}" -var="ami=${receivedAMI}" -var="instance_type=${receivedInstanceType}" -var="key_name=${receivedKeyPair}" -var="storage_size=${receivedStorage}" -var="db_engine=${receivedDBEngine}" -var="engine_version=${receivedEngineVersion}" -var="multi_az=${multi_az}" -json`, // Add -json to output Terraform state as JSON
+          `terraform apply -auto-approve \
+          -var="instance_name=${instanceName}" \
+          -var="aws_region=${region}" \
+          -var="min_instances=${minInstances}" \
+          -var="max_instances=${maxInstances}" \
+          -var="ami=${ami}" \
+          -var="instance_type=${instanceType}" \
+          -var="key_name=${keyPair}" \
+          -var="storage_size=${storage}" \
+          -var="db_engine=${dbEngine}" \
+          -var="engine_version=${engineVersion}" \
+          -var="multi_az=${rdsMultiAZ}"`,
           { cwd: terraformPath },
           (applyError, applyStdout, applyStderr) => {
             if (applyError) {

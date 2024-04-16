@@ -49,7 +49,7 @@ function loginUser(email, password, callback) {
       });
     },
     mfaRequired: (challengeName, challengeParameters) => {
-      console.log("MFA is required"); // Add a log statement for debugging
+      console.log("MFA is required");
       callback({ error: "MFA_REQUIRED" }, null);
     },
   });
